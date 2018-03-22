@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.js" type="text/javascript"></script>
+<script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.3.1.js" type="text/javascript"></script>
+
+
+<title>WebjsMQTtest</title>
+</head>
+<body>
+
+<script type="text/javascript">
+$(function(){
+	var mqtt_client;
+	var mqtt_broker_host = "localhost";
+	var mqtt_broker_port = 8083;
+	
+	$('#connect').click(function(){
+		mqtt_client = new Paho.MQTT.Client(mqtt_broker_host,Number(mqtt_broker_port),"mqtt_03_web_publish");
+		mqtt_client.onConnectionLost = onConnectionLost;
+		mqtt_client.onMessageArrived = onMessageArrived;
+		mqtt_client.connect({onSuccess:onConnect});
+		
+		function onConnect(){
+			console.log("onConnect");
+		}
+		
+		function onConnectionLost(responseObject){
+			if(reponseObject.errorCode !==0){
+				console.log("onConnectLost:"+responseObject.errorMessage);
+			}
+		}
+		
+		function onMessageArrived(message){
+			console.log("onMessageArrived:"+message.payloadString);
+		}
+		});
+	
+	
+	
+$('#sendmessage').click(function(){
+	
+
+	
+	var topic = $('#topic').val();
+	var qos = $('#qos').val();
+	var firstnameVal = $('#firstname').val();
+	var lastnameVal = $('#lastname').val();
+	var ageVal = $('#age').val();
+	var personObj={firstname:firstnameVal,lastname:lastnameVal,age:Number(ageVal)};
+	var personJSON=JSON.stringify(personObj);
+	
+	
+	var messageObj = new Paho.MQTT.Message(personJSON);
+	messageObj.qos = Number(qos);
+	messageObj.destinationName = topic;
+	mqtt_client.send(messageObj);
+	
+	});
+		
+		
+});
+
+
+
+</script>
+
+
+<form>
+Topic:<br>
+<input type="text" id="topic"/>
+<br/>
+Qos:
+<br>
+<input type="text" id="qos"/><br/>
+Firstname:<br/>
+<input type="text" id="firstname"/><br/>
+Lastname:<br/>
+<input type="text" id="lastname"/><br/>
+Age:<br/>
+<input type="text" id="age"/><br/>
+
+
+<input type="button" id="sendmessage" value="Send"/>
+<input type="button" id="connect" value="Connect"/>
+
+</form>
+
+</body>
+</html>
